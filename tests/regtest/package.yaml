@@ -1,0 +1,13 @@
+name: jaguar-network-tests
+environment:
+  sdk: ^2.0.0-alpha.144
+dependencies:
+  cli:
+    url: github.com/toitlang/pkg-cli
+    version: ^2.16.0
+  host:
+    url: github.com/toitlang/pkg-host
+    version: ^1.18.0
+prefixes:
+  cli: cli
+  host: host

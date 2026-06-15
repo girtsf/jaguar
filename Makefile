@@ -20,7 +20,7 @@ else
 SDK_PATH := $(BUILD_SDK_DIR)
 endif
 
-JAG_BINARY := jag$(EXE_SUFFIX)
+JAG_BINARY_PATH := $(BUILD_DIR)/jag$(EXE_SUFFIX)
 JAG_ENTRY_POINT := $(CURDIR)/src/jaguar.toit
 JAG_TOIT_SOURCES := $(shell find src -name '*.toit') package.lock package.yaml
 JAG_GO_SOURCES := $(shell find cmd -name '*.go')
@@ -43,9 +43,9 @@ clean:
 # Rules for the Jaguar binary
 #############################
 .PHONY: jag
-jag: $(BUILD_DIR)/$(JAG_BINARY)
+jag: $(JAG_BINARY_PATH)
 
-$(BUILD_DIR)/$(JAG_BINARY): $(JAG_GO_SOURCES)
+$(JAG_BINARY_PATH): $(JAG_GO_SOURCES)
 	$(GO_BUILD_FLAGS) go build -ldflags "$(GO_LINK_FLAGS)" -o $@ ./cmd/jag
 
 #############################
@@ -105,18 +105,18 @@ endif
 ###############################################
 
 .PHONY: download-sdk
-download-sdk: $(BUILD_DIR)/$(JAG_BINARY)
+download-sdk: $(JAG_BINARY_PATH)
 	rm -rf $(BUILD_SDK_DIR)
-	$(BUILD_DIR)/$(JAG_BINARY) --no-analytics setup sdk $(BUILD_SDK_DIR)
+	$(JAG_BINARY_PATH) --no-analytics setup sdk $(BUILD_SDK_DIR)
 
 .PHONY: test
 test: test-toit
-test: $(BUILD_DIR)/$(JAG_BINARY)
+test: $(JAG_BINARY_PATH)
 	@# For now just try to extract images for all chips.
 	@for chip in esp32 esp32c3 esp32c6 esp32s2 esp32s3; do \
 		set -e; \
 		tmp_dir=$$(mktemp -d); \
-		$(BUILD_DIR)/$(JAG_BINARY) \
+		$(JAG_BINARY_PATH) \
 				--no-analytics \
 				--wifi-ssid=test --wifi-password=test \
 				firmware extract $$chip \
@@ -133,3 +133,22 @@ test-toit: install-dependencies
 		echo "Running $$test"; \
 		$(SDK_PATH)/bin/toit$(EXE_SUFFIX) run "$$test" || exit 1; \
 	done
+
+########################################
+# Regression tests against a live device
+########################################
+# Not part of `test` since it needs hardware.
+#
+# Usage: make regtest [DEVICE=<name|id|addr>]
+#   DEVICE is optional if exactly one device is visible.
+.PHONY: regtest
+regtest: install-dependencies
+regtest: $(JAG_BINARY_PATH)
+	$(SDK_PATH)/bin/toit$(EXE_SUFFIX) pkg --project-root=$(CURDIR)/tests/regtest install
+	@# The harness drives $(JAG_BINARY_PATH), which needs a Toit SDK. With
+	@# JAG_TOIT_REPO_PATH set, jag uses that checkout's SDK as-is; otherwise make
+	@# sure jag has downloaded its own SDK (cached, so this is a one-time cost).
+	@if [ -z "$(JAG_TOIT_REPO_PATH)" ]; then \
+		$(JAG_BINARY_PATH) setup --check >/dev/null 2>&1 || $(JAG_BINARY_PATH) setup --keep-old; \
+	fi
+	$(SDK_PATH)/bin/toit$(EXE_SUFFIX) run tests/regtest/run.toit -- $(DEVICE) --jag $(JAG_BINARY_PATH)
