@@ -1,0 +1,69 @@
+name: GF release
+
+# Builds jag and the Jaguar assets for the girtsf fork and publishes them as a
+# release tagged with the built jag version (<main.go version>-gf.<run number>).
+# An empty sdk-version falls back to fork.mk.
+# Run on the gf branch after the SDK release (sdk-version) exists in
+# JAG_TOIT_GITHUB_REPO:
+#
+#   gh workflow run gf-release.yml -R girtsf/jaguar --ref gf -f sdk-version=v2.0.0-alpha.199-gf.1
+#
+# The upstream "Build" workflow also runs on releases; disable it in the fork.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sdk-version:
+        description: Toit SDK version, e.g. v2.0.0-alpha.199-gf.1 (default from fork.mk)
+        type: string
+        default: ""
+
+env:
+  JAG_BUILD_RELEASE: 1
+  JAG_GF_BUILD: ${{ github.run_number }}
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.4"
+
+      - name: Apply inputs
+        env:
+          INPUT_SDK_VERSION: ${{ inputs.sdk-version }}
+        run: |
+          if [[ -n "$INPUT_SDK_VERSION" ]]; then echo "JAG_SDK_VERSION=$INPUT_SDK_VERSION" >> $GITHUB_ENV; fi
+
+      - name: Build jag
+        run: |
+          make JAG_BINARY=linux/jag jag
+          GOOS=linux GOARCH=arm make JAG_BINARY=linux-arm/jag jag
+          GOOS=linux GOARCH=arm64 make JAG_BINARY=linux-arm64/jag jag
+          build/linux/jag --no-analytics version | tee build/version.txt
+          echo "TAG=$(awk -F'\t ' 'NR==1 {print $2}' build/version.txt)" >> $GITHUB_ENV
+          echo "SDK=$(awk -F'\t ' 'NR==2 {print $2}' build/version.txt)" >> $GITHUB_ENV
+
+      - name: Build assets
+        run: |
+          make download-sdk
+          make assets
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir build/release
+          tar -czf build/release/jag_linux.tgz -C build/linux jag
+          tar -czf build/release/jag_linux_arm.tgz -C build/linux-arm jag
+          tar -czf build/release/jag_linux_arm64.tgz -C build/linux-arm64 jag
+          tar -czf build/release/assets.tar.gz -C build -h assets
+          gh release create "$TAG" build/release/* \
+              --target "$GITHUB_SHA" --title "$TAG" --notes "Toit SDK $SDK, commit $GITHUB_SHA"
