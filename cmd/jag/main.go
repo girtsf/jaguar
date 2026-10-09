@@ -21,13 +21,16 @@ var (
 var buildDate = "unknown"
 var buildMode = "development"
 
+// versionSuffix is appended to version. Builds of forks set it at link time.
+var versionSuffix = ""
+
 func main() {
 	isReleaseBuild := buildMode == "release"
 	directory.IsReleaseBuild = isReleaseBuild
 
 	info := commands.Info{
 		Date:       buildDate,
-		Version:    version,
+		Version:    version + versionSuffix,
 		SDKVersion: sdkVersion,
 	}
 	ctx := commands.SetInfo(context.Background(), info)

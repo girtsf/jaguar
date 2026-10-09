@@ -37,6 +37,9 @@ endif
 ifdef JAG_VERSION
 GO_LINK_FLAGS += -X 'main.version=$(JAG_VERSION)'
 endif
+ifdef JAG_VERSION_SUFFIX
+GO_LINK_FLAGS += -X 'main.versionSuffix=$(JAG_VERSION_SUFFIX)'
+endif
 ifdef JAG_SDK_VERSION
 GO_LINK_FLAGS += -X 'main.sdkVersion=$(JAG_SDK_VERSION)'
 endif
