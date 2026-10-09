@@ -44,10 +44,10 @@ jobs:
 
       - name: Build jag
         run: |
-          make JAG_BINARY=linux/jag jag
-          GOOS=linux GOARCH=arm make JAG_BINARY=linux-arm/jag jag
-          GOOS=linux GOARCH=arm64 make JAG_BINARY=linux-arm64/jag jag
-          build/linux/jag --no-analytics version | tee build/version.txt
+          make JAG_BINARY=linux/jag_gf jag
+          GOOS=linux GOARCH=arm make JAG_BINARY=linux-arm/jag_gf jag
+          GOOS=linux GOARCH=arm64 make JAG_BINARY=linux-arm64/jag_gf jag
+          build/linux/jag_gf --no-analytics version | tee build/version.txt
           echo "TAG=$(awk -F'\t ' 'NR==1 {print $2}' build/version.txt)" >> $GITHUB_ENV
           echo "SDK=$(awk -F'\t ' 'NR==2 {print $2}' build/version.txt)" >> $GITHUB_ENV
 
@@ -61,9 +61,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir build/release
-          tar -czf build/release/jag_linux.tgz -C build/linux jag
-          tar -czf build/release/jag_linux_arm.tgz -C build/linux-arm jag
-          tar -czf build/release/jag_linux_arm64.tgz -C build/linux-arm64 jag
+          tar -czf build/release/jag_gf_linux.tgz -C build/linux jag_gf
+          tar -czf build/release/jag_gf_linux_arm.tgz -C build/linux-arm jag_gf
+          tar -czf build/release/jag_gf_linux_arm64.tgz -C build/linux-arm64 jag_gf
           tar -czf build/release/assets.tar.gz -C build -h assets
           gh release create "$TAG" build/release/* \
               --target "$GITHUB_SHA" --title "$TAG" --notes "Toit SDK $SDK, commit $GITHUB_SHA"
