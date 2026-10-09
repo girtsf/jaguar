@@ -2,11 +2,10 @@ name: GF release
 
 # Builds jag and the Jaguar assets for the girtsf fork and publishes them as a
 # release tagged with the built jag version (<main.go version>-gf.<run number>).
-# An empty sdk-version falls back to fork.mk.
-# Run on the gf branch after the SDK release (sdk-version) exists in
-# JAG_TOIT_GITHUB_REPO:
+# An empty sdk-version uses the latest release of JAG_TOIT_GITHUB_REPO (from
+# fork.mk). Run on the gf branch:
 #
-#   gh workflow run gf-release.yml -R girtsf/jaguar --ref gf -f sdk-version=v2.0.0-alpha.199-gf.1
+#   gh workflow run gf-release.yml -R girtsf/jaguar --ref gf [-f sdk-version=v2.0.0-alpha.199-gf.1]
 #
 # The upstream "Build" workflow also runs on releases; disable it in the fork.
 
@@ -14,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       sdk-version:
-        description: Toit SDK version, e.g. v2.0.0-alpha.199-gf.1 (default from fork.mk)
+        description: Toit SDK version, e.g. v2.0.0-alpha.199-gf.1 (default latest SDK release)
         type: string
         default: ""
 
@@ -36,11 +35,17 @@ jobs:
         with:
           go-version: "1.26.4"
 
-      - name: Apply inputs
+      - name: Pick SDK version
         env:
           INPUT_SDK_VERSION: ${{ inputs.sdk-version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ -n "$INPUT_SDK_VERSION" ]]; then echo "JAG_SDK_VERSION=$INPUT_SDK_VERSION" >> $GITHUB_ENV; fi
+          SDK_VERSION=$INPUT_SDK_VERSION
+          if [[ -z "$SDK_VERSION" ]]; then
+            TOIT_REPO=$(sed -n 's/^JAG_TOIT_GITHUB_REPO ?= //p' fork.mk)
+            SDK_VERSION=$(gh release view -R "$TOIT_REPO" --json tagName -q .tagName)
+          fi
+          echo "JAG_SDK_VERSION=$SDK_VERSION" >> $GITHUB_ENV
 
       - name: Build jag
         run: |
