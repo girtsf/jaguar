@@ -34,7 +34,7 @@ var chipsWithPartitionOverride = map[string]string{
 // getPartitionTableURL returns the URL of a partition table that is published
 // in the Toit envelopes repository for the given SDK version.
 func getPartitionTableURL(version string, name string) string {
-	return fmt.Sprintf("https://github.com/toitlang/envelopes/releases/download/%s/partitions-%s.csv", version, name)
+	return fmt.Sprintf("https://github.com/%s/releases/download/%s/partitions-%s.csv", envelopesRepo, version, name)
 }
 
 // partitionOverrideArgs returns the firmware-tool arguments that override the
@@ -173,7 +173,7 @@ func getCachedPartitionTablePath(ctx context.Context, jagVersion string, sdkVers
 	if err != nil {
 		fmt.Printf("Failed to download partition table: %v\n", err)
 		fmt.Printf("Make sure the name is correct. You can find supported partition tables at\n")
-		fmt.Printf("https://github.com/toitlang/envelopes/tree/main/partitions/esp32.\n")
+		fmt.Printf("https://github.com/%s/tree/main/partitions/esp32.\n", envelopesRepo)
 		fmt.Printf("The name of the partition is then 'esp32-' plus the directory name.\n")
 		fmt.Printf("Example: 'esp32-ota-1c0000-16mb'.\n")
 		return "", err

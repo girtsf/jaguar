@@ -35,7 +35,7 @@ func GetCachedFirmwareEnvelopePath(ctx context.Context, jagVersion string, versi
 				fmt.Printf("Chip model names must be lowercase without dashes. Please try again with 'esp32c3', 'esp32c6', 'esp32s2', or 'esp32s3'.\n")
 			default:
 				fmt.Printf("Make sure the model name is correct. You can find supported models at\n")
-				fmt.Printf("https://github.com/toitlang/envelopes/releases/tag/%s.\n", version)
+				fmt.Printf("https://github.com/%s/releases/tag/%s.\n", envelopesRepo, version)
 			}
 			return "", err
 		}
@@ -44,7 +44,7 @@ func GetCachedFirmwareEnvelopePath(ctx context.Context, jagVersion string, versi
 }
 
 func getFirmwareURL(version string, model string) string {
-	return fmt.Sprintf("https://github.com/toitlang/envelopes/releases/download/%s/firmware-%s.envelope.gz", version, model)
+	return fmt.Sprintf("https://github.com/%s/releases/download/%s/firmware-%s.envelope.gz", envelopesRepo, version, model)
 }
 
 func isURL(path string) bool {

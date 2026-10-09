@@ -171,7 +171,7 @@ func CheckUpToDate(info Info) {
 
 	// Construct the URL we're fetching version information from.
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s",
-		"toitlang/jaguar",
+		jaguarRepo,
 		"releases/latest")
 
 	// Create an HTTP request with the bare minimum headers.
@@ -220,7 +220,7 @@ func CheckUpToDate(info Info) {
 		fmt.Println("want to update using your package manager or download the new")
 		fmt.Println("version directly from:")
 		fmt.Println()
-		fmt.Println("  https://github.com/toitlang/jaguar/releases/latest")
+		fmt.Println("  https://github.com/" + jaguarRepo + "/releases/latest")
 		fmt.Println()
 		fmt.Println("You can disable these periodic up-to-date checks through:")
 		fmt.Println()
