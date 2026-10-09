@@ -31,6 +31,24 @@ GO_LINK_FLAGS += -X 'main.buildDate="$(BUILD_DATE)"'
 ifdef JAG_BUILD_RELEASE
 GO_LINK_FLAGS += -X 'main.buildMode=release'
 endif
+# Overrides for builds of forks, from the environment or an optional fork.mk.
+# Run 'make clean' after changing them.
+-include $(CURDIR)/fork.mk
+ifdef JAG_VERSION
+GO_LINK_FLAGS += -X 'main.version=$(JAG_VERSION)'
+endif
+ifdef JAG_SDK_VERSION
+GO_LINK_FLAGS += -X 'main.sdkVersion=$(JAG_SDK_VERSION)'
+endif
+ifdef JAG_TOIT_GITHUB_REPO
+GO_LINK_FLAGS += -X 'github.com/toitlang/jaguar/cmd/jag/commands.toitRepo=$(JAG_TOIT_GITHUB_REPO)'
+endif
+ifdef JAG_ENVELOPES_GITHUB_REPO
+GO_LINK_FLAGS += -X 'github.com/toitlang/jaguar/cmd/jag/commands.envelopesRepo=$(JAG_ENVELOPES_GITHUB_REPO)'
+endif
+ifdef JAG_JAGUAR_GITHUB_REPO
+GO_LINK_FLAGS += -X 'github.com/toitlang/jaguar/cmd/jag/commands.jaguarRepo=$(JAG_JAGUAR_GITHUB_REPO)'
+endif
 
 .PHONY: all
 all: jag assets

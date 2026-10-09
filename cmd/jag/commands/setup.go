@@ -16,6 +16,15 @@ import (
 	"github.com/toitlang/jaguar/cmd/jag/directory"
 )
 
+// GitHub repositories (owner/name) that jag downloads the SDK, envelopes,
+// partition tables and assets from. Overridable at link time with -X, so
+// that a fork can publish its own builds.
+var (
+	toitRepo      = "toitlang/toit"
+	envelopesRepo = "toitlang/envelopes"
+	jaguarRepo    = "toitlang/jaguar"
+)
+
 func getToitSDKURL(version string) (string, error) {
 	currOS := runtime.GOOS
 	currARCH := runtime.GOARCH
@@ -41,18 +50,18 @@ func getToitSDKURL(version string) (string, error) {
 	} else {
 		return "", fmt.Errorf("unsupported OS %s", currOS)
 	}
-	return fmt.Sprintf("https://github.com/toitlang/toit/releases/download/%s/toit-%s.tar.gz", version, selector), nil
+	return fmt.Sprintf("https://github.com/%s/releases/download/%s/toit-%s.tar.gz", toitRepo, version, selector), nil
 }
 
 func getAssetsURL(version string) string {
-	return fmt.Sprintf("https://github.com/toitlang/jaguar/releases/download/%s/assets.tar.gz", version)
+	return fmt.Sprintf("https://github.com/%s/releases/download/%s/assets.tar.gz", jaguarRepo, version)
 }
 
 func SetupCmd(info Info) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setup",
 		Short: "Setup the Toit SDK",
-		Long: "Setup the Toit SDK by downloading the necessary bits from https://github.com/toitlang/toit.\n" +
+		Long: "Setup the Toit SDK by downloading the necessary bits from https://github.com/" + toitRepo + ".\n" +
 			"The downloaded SDK is stored locally in a subdirectory of your home folder.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
